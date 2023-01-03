@@ -1,0 +1,50 @@
+clc
+
+% My Values
+R = 14;
+L = 2.2*10^-3;
+C = 390 * 10^-6;
+
+% A) Equation. ps: v = v(t)
+syms v t
+E1 = v/R + (1/L)*int(v,0, t) + C * diff(v) == 100*cos(100*pi*t);
+fprintf('a)\nlaplace of equation 1:\n')
+LE1 = laplace(E1)
+
+% B) Simplify 
+fprintf('b)\n isolate v(s):\n')
+vs = solve(LE1, v)
+
+% System of Equations. ("d" is replacing the usual "C" because of prev var)
+syms A B d D 
+eq1 = A + d == 0;
+eq2 = B + (R/C)*d + D == 100/C;
+eq3 = (100*pi)^2 + L*d + (R/C)*D == 0;
+eq4 = ((100*pi)^2)*B + L*D == 0;
+M = [eq1; eq2; eq3; eq4]; 
+b = [A; B; d; D];
+sol = vpasolve(M, b)
+% Inverse Laplace
+syms s 
+trm1 = (sol.A*s + sol.B)/(s^2 + (100*pi)^2);
+trm2 = (sol.d*s + sol.d)/((R/C)*s + L + s^2);
+Vs = trm1 + trm2;
+vs = ilaplace(Vs)
+
+% Graphing
+% copy vs variable from output into f variable in order to plot it.
+t = linspace(0, .1, 1000);
+f = 0.00019898171322556189527851012248151*exp(-0.000000061285714285818913844774357584765*t) + 
+7.1427347512987619309304056125774*exp(-35897.435897374612654426695725056*t) - exp(-
+t*314.15926535897932554525214803765i)*(3.5714668665059937464128420613499 - 
+0.000000000097539259225157783285443367644991i) - 
+exp(t*314.15926535897932554525214803765i)*(3.5714668665059937464128420613499 + 
+0.000000000097539259225157783285443367644991i);
+
+plot(t, f, "Color","blue", "LineWidth", 2, "MarkerSize", 16);
+xlabel("Time (ms)", "FontSize", 16);
+ylabel("TOTAL current response i(t) [mA]", "FontSize", 16);
+hold on
+vr = .25;
+yline(vr, "Color", "black", "LineStyle","- -", "LineWidth", 2);
+hold off
